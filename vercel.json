@@ -1,12 +1,7 @@
 {
-  "version": 2,
   "rewrites": [
     {
-      "source": "/_serverFn/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/(?!assets/).*",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
