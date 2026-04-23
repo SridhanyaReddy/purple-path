@@ -2,8 +2,12 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/_serverFn/(.*)",
       "destination": "/api/index"
+    },
+    {
+      "source": "/((?!assets/|api/).*)",
+      "destination": "/index.html"
     }
   ]
 }

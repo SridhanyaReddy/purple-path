@@ -59,10 +59,10 @@ export function TasksPage() {
     if (editId) {
       const task = tasks.find(t => t.id === editId);
       if (task) {
-        updateTaskMutation.mutate({ ...task, ...form });
+        updateTaskMutation.mutate({ data: { ...task, ...form } });
       }
     } else {
-      addTaskMutation.mutate({ ...form, completed: false });
+      addTaskMutation.mutate({ data: { ...form, completed: false } });
     }
     resetForm();
   };
@@ -93,7 +93,7 @@ export function TasksPage() {
   };
 
   const handleDelete = (id: string) => {
-    deleteTaskMutation.mutate({ id });
+    deleteTaskMutation.mutate({ data: { id } });
   };
 
   const filtered = tasks

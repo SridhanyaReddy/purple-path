@@ -60,10 +60,10 @@ export function ExpensesPage() {
     if (editId) {
       const exp = expenses.find(e => e.id === editId);
       if (exp) {
-        updateExpenseMutation.mutate({ ...exp, ...form });
+        updateExpenseMutation.mutate({ data: { ...exp, ...form } });
       }
     } else {
-      addExpenseMutation.mutate(form);
+      addExpenseMutation.mutate({ data: form });
     }
     resetForm();
   };
@@ -75,7 +75,7 @@ export function ExpensesPage() {
   };
 
   const handleDelete = (id: string) => {
-    deleteExpenseMutation.mutate({ id });
+    deleteExpenseMutation.mutate({ data: { id } });
   };
 
   const saveBudgetValue = () => {
