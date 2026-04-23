@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Edit3, Check, Search, Link2, CheckSquare } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
 import {
-  getTasks, addTask, updateTask, deleteTask, addExpense,
+  getTasks, saveTask, updateTask as updateTaskServer, deleteTask as deleteTaskServer,
   type Task, type Priority, type TaskCategory,
-} from '@/lib/store';
+} from '../server/tasks';
+import { addExpense } from '@/lib/store';
 
 const priorities: Priority[] = ['low', 'medium', 'high'];
 const categories: TaskCategory[] = ['personal', 'work', 'shopping', 'health', 'finance', 'other'];
@@ -17,6 +19,35 @@ const priorityStyles: Record<Priority, string> = {
 
 export function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getTasks().then((fetchedTasks) => {
+      setTasks(fetchedTasks);
+      setIsLoading(false);
+    }).catch((error) => {
+      console.error('Error fetching tasks:', error);
+      setIsLoading(false);
+    });
+  }, []);
+
+  const refetchTasks = () => {
+    getTasks().then(setTasks);
+  };
+
+  const addTaskMutation = useMutation({
+    mutationFn: saveTask,
+    onSuccess: refetchTasks,
+  });
+  const updateTaskMutation = useMutation({
+    mutationFn: updateTaskServer,
+    onSuccess: refetchTasks,
+  });
+  const deleteTaskMutation = useMutation({
+    mutationFn: deleteTaskServer,
+    onSuccess: refetchTasks,
+  });
+
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -27,10 +58,6 @@ export function TasksPage() {
     category: 'personal' as TaskCategory, autoLogExpense: false, estimatedCost: 0,
   });
 
-  useEffect(() => { setTasks(getTasks()); }, []);
-
-  const reload = () => setTasks(getTasks());
-
   const resetForm = () => {
     setForm({ title: '', description: '', dueDate: '', priority: 'medium', category: 'personal', autoLogExpense: false, estimatedCost: 0 });
     setShowForm(false);
@@ -40,17 +67,20 @@ export function TasksPage() {
   const handleSubmit = () => {
     if (!form.title.trim()) return;
     if (editId) {
-      updateTask(editId, form);
+      const task = tasks.find(t => t.id === editId);
+      if (task) {
+        updateTaskMutation.mutate({ ...task, ...form });
+      }
     } else {
-      addTask({ ...form, completed: false });
+      addTaskMutation.mutate({ ...form, completed: false });
     }
     resetForm();
-    reload();
   };
 
   const handleComplete = (task: Task) => {
-    const updated = updateTask(task.id, { completed: !task.completed });
-    if (updated && !task.completed && task.autoLogExpense && task.estimatedCost) {
+    const updated = { ...task, completed: !task.completed };
+    updateTaskMutation.mutate({ data: updated });
+    if (!task.completed && task.autoLogExpense && task.estimatedCost) {
       const exp = addExpense({
         amount: task.estimatedCost,
         category: 'shopping',
@@ -58,9 +88,8 @@ export function TasksPage() {
         notes: `Auto-logged from task: ${task.title}`,
         linkedTaskId: task.id,
       });
-      updateTask(task.id, { linkedExpenseId: exp.id });
+      updateTaskMutation.mutate({ data: { ...updated, linkedExpenseId: exp.id } });
     }
-    reload();
   };
 
   const handleEdit = (task: Task) => {
@@ -74,8 +103,7 @@ export function TasksPage() {
   };
 
   const handleDelete = (id: string) => {
-    deleteTask(id);
-    reload();
+    deleteTaskMutation.mutate({ id });
   };
 
   const filtered = tasks

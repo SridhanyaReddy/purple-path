@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Edit3, Search, Wallet, Settings } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
 import {
-  getExpenses, addExpense, updateExpense, deleteExpense,
-  getBudget, saveBudget,
+  getExpenses, saveExpense, updateExpense as updateExpenseServer, deleteExpense as deleteExpenseServer,
   type Expense, type ExpenseCategory,
-} from '@/lib/store';
+} from '../server/expenses';
+import { getBudget, saveBudget } from '@/lib/store';
 
 const expenseCategories: ExpenseCategory[] = ['food', 'travel', 'bills', 'shopping', 'entertainment', 'health', 'other'];
 
@@ -15,6 +16,35 @@ const categoryEmoji: Record<ExpenseCategory, string> = {
 
 export function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getExpenses().then((fetchedExpenses) => {
+      setExpenses(fetchedExpenses);
+      setIsLoading(false);
+    }).catch((error) => {
+      console.error('Error fetching expenses:', error);
+      setIsLoading(false);
+    });
+  }, []);
+
+  const refetchExpenses = () => {
+    getExpenses().then(setExpenses);
+  };
+
+  const addExpenseMutation = useMutation({
+    mutationFn: saveExpense,
+    onSuccess: refetchExpenses,
+  });
+  const updateExpenseMutation = useMutation({
+    mutationFn: updateExpenseServer,
+    onSuccess: refetchExpenses,
+  });
+  const deleteExpenseMutation = useMutation({
+    mutationFn: deleteExpenseServer,
+    onSuccess: refetchExpenses,
+  });
+
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -28,11 +58,8 @@ export function ExpensesPage() {
   });
 
   useEffect(() => {
-    setExpenses(getExpenses());
     setBudgetVal(getBudget().monthly);
   }, []);
-
-  const reload = () => setExpenses(getExpenses());
 
   const resetForm = () => {
     setForm({ amount: 0, category: 'food', date: new Date().toISOString().split('T')[0], notes: '' });
@@ -43,12 +70,14 @@ export function ExpensesPage() {
   const handleSubmit = () => {
     if (!form.amount) return;
     if (editId) {
-      updateExpense(editId, form);
+      const exp = expenses.find(e => e.id === editId);
+      if (exp) {
+        updateExpenseMutation.mutate({ ...exp, ...form });
+      }
     } else {
-      addExpense(form);
+      addExpenseMutation.mutate(form);
     }
     resetForm();
-    reload();
   };
 
   const handleEdit = (exp: Expense) => {
@@ -58,8 +87,7 @@ export function ExpensesPage() {
   };
 
   const handleDelete = (id: string) => {
-    deleteExpense(id);
-    reload();
+    deleteExpenseMutation.mutate({ id });
   };
 
   const saveBudgetValue = () => {
