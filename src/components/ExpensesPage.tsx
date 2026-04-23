@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import {
   getExpenses, saveExpense, updateExpense as updateExpenseServer, deleteExpense as deleteExpenseServer,
   type Expense, type ExpenseCategory,
-} from '../server/expenses';
+} from '@/server/expenses';
 import { getBudget, saveBudget } from '@/lib/store';
 
 const expenseCategories: ExpenseCategory[] = ['food', 'travel', 'bills', 'shopping', 'entertainment', 'health', 'other'];

@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import {
   getTasks, saveTask, updateTask as updateTaskServer, deleteTask as deleteTaskServer,
   type Task, type Priority, type TaskCategory,
-} from '../server/tasks';
+} from '@/server/tasks';
 import { addExpense } from '@/lib/store';
 
 const priorities: Priority[] = ['low', 'medium', 'high'];
