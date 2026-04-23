@@ -1,15 +1,15 @@
-import { Link, useLocation } from '@tanstack/react-router';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import { LayoutDashboard, CheckSquare, Wallet, Moon, Sun } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getTheme, saveTheme } from '@/lib/store';
 
 const navItems = [
-  { to: '/' as const, label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/tasks' as const, label: 'Tasks', icon: CheckSquare },
-  { to: '/expenses' as const, label: 'Expenses', icon: Wallet },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/tasks', label: 'Tasks', icon: CheckSquare },
+  { to: '/expenses', label: 'Expenses', icon: Wallet },
 ];
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout() {
   const location = useLocation();
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
@@ -23,6 +23,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     saveTheme(next);
+    document.documentElement.classList.toggle('dark', next === 'dark');
   };
 
   return (
@@ -69,7 +70,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main */}
       <main className="ml-64 flex-1">
-        <div className="p-8">{children}</div>
+        <div className="p-8">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

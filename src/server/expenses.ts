@@ -1,71 +1,38 @@
-import { createServerFn } from '@tanstack/react-start';
-import { connectToDatabase } from '../lib/db';
-import type { Expense } from '../lib/store';
-import { z } from 'zod';
+export type ExpenseCategory = 'food' | 'travel' | 'bills' | 'shopping' | 'entertainment' | 'health' | 'other';
 
-export const getExpensesServer = createServerFn({ method: 'GET' }).handler(async () => {
-  const db = await connectToDatabase();
-  const expenses = await db.collection('expenses').find({}).toArray();
-  console.log('Fetched expenses count:', expenses.length);
-  return expenses.map(({ _id, ...rest }) => rest) as Expense[];
-});
+export interface Expense {
+  _id?: string;
+  id: string;
+  amount: number;
+  category: ExpenseCategory;
+  date: string;
+  notes: string;
+  linkedTaskId?: string;
+}
 
-export const saveExpenseServer = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({
-    amount: z.number(),
-    category: z.string(),
-    date: z.string(),
-    notes: z.string().optional(),
-    linkedTaskId: z.string().optional()
-  }))
-  .handler(async ({ data }) => {
-    try {
-      const db = await connectToDatabase();
-      const newExpense = {
-        ...data,
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-        createdAt: new Date().toISOString(),
-      };
-      await db.collection('expenses').insertOne(newExpense);
-      console.log('✅ INSERT SUCCESS');
-      return newExpense;
-    } catch (error) {
-      console.error('❌ INSERT ERROR:', error);
-      throw error;
-    }
+async function apiCall(action: string, payload?: any) {
+  const res = await fetch('/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ collection: 'expenses', action, payload }),
   });
+  if (!res.ok) throw new Error('Expense API Error');
+  return res.json();
+}
 
-export const updateExpenseServer = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({
-    id: z.string(),
-    amount: z.number(),
-    category: z.string(),
-    date: z.string(),
-    notes: z.string().optional(),
-    linkedTaskId: z.string().optional(),
-    createdAt: z.string().optional()
-  }))
-  .handler(async ({ data }) => {
-    try {
-      const db = await connectToDatabase();
-      await db.collection('expenses').updateOne({ id: data.id }, { $set: data });
-      console.log('✅ UPDATE SUCCESS');
-      return data as Expense;
-    } catch (error) {
-      console.error('❌ UPDATE ERROR:', error);
-      throw error;
-    }
-  });
+export const getExpensesServer = async () => {
+  const data = await apiCall('find');
+  return data.map((item: any) => ({ ...item, id: item._id }));
+};
 
-export const deleteExpenseServer = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({ id: z.string() }))
-  .handler(async ({ data }) => {
-    try {
-      const db = await connectToDatabase();
-      const result = await db.collection('expenses').deleteOne({ id: data.id });
-      console.log('✅ DELETE SUCCESS:', data.id, 'Deleted:', result.deletedCount);
-    } catch (error) {
-      console.error('❌ DELETE ERROR:', error);
-      throw error;
-    }
-  });
+export const saveExpenseServer = async ({ data }: { data: Omit<Expense, 'id'> }) => {
+  return apiCall('insert', data);
+};
+
+export const updateExpenseServer = async ({ data }: { data: Expense }) => {
+  return apiCall('update', { ...data, id: data.id });
+};
+
+export const deleteExpenseServer = async ({ data }: { id: string }) => {
+  return apiCall('delete', { id: data.id });
+};

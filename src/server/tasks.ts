@@ -1,78 +1,43 @@
-import { createServerFn } from '@tanstack/react-start';
-import { connectToDatabase } from '../lib/db';
-import type { Task } from '../lib/store';
-import { z } from 'zod';
+export type Priority = 'low' | 'medium' | 'high';
+export type TaskCategory = 'personal' | 'work' | 'shopping' | 'health' | 'finance' | 'other';
 
-export const getTasksServer = createServerFn({ method: 'GET' }).handler(async () => {
-  const db = await connectToDatabase();
-  const tasks = await db.collection('tasks').find({}).toArray();
-  console.log('Fetched tasks count:', tasks.length);
-  return tasks.map(({ _id, ...rest }) => rest) as Task[];
-});
+export interface Task {
+  _id?: string;
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  dueDate: string;
+  priority: Priority;
+  category: TaskCategory;
+  autoLogExpense?: boolean;
+  estimatedCost?: number;
+  linkedExpenseId?: string;
+}
 
-export const saveTaskServer = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    dueDate: z.string(),
-    priority: z.string(),
-    category: z.string(),
-    completed: z.boolean().optional(),
-    autoLogExpense: z.boolean().optional(),
-    estimatedCost: z.number().optional()
-  }))
-  .handler(async ({ data }) => {
-    try {
-      const db = await connectToDatabase();
-      const newTask = {
-        ...data,
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-        createdAt: new Date().toISOString(),
-      };
-      await db.collection('tasks').insertOne(newTask);
-      console.log('✅ TASK INSERT SUCCESS');
-      return newTask;
-    } catch (error) {
-      console.error('❌ TASK INSERT ERROR:', error);
-      throw error;
-    }
+async function apiCall(action: string, payload?: any) {
+  const res = await fetch('/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ collection: 'tasks', action, payload }),
   });
+  if (!res.ok) throw new Error('Task API Error');
+  return res.json();
+}
 
-export const updateTaskServer = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({
-    id: z.string(),
-    title: z.string(),
-    description: z.string().optional(),
-    dueDate: z.string(),
-    priority: z.string(),
-    category: z.string(),
-    completed: z.boolean().optional(),
-    autoLogExpense: z.boolean().optional(),
-    estimatedCost: z.number().optional(),
-    createdAt: z.string().optional(),
-    linkedExpenseId: z.string().optional()
-  }))
-  .handler(async ({ data }) => {
-    try {
-      const db = await connectToDatabase();
-      await db.collection('tasks').updateOne({ id: data.id }, { $set: data });
-      console.log('✅ TASK UPDATE SUCCESS');
-      return data as Task;
-    } catch (error) {
-      console.error('❌ TASK UPDATE ERROR:', error);
-      throw error;
-    }
-  });
+export const getTasksServer = async () => {
+  const data = await apiCall('find');
+  return data.map((item: any) => ({ ...item, id: item._id }));
+};
 
-export const deleteTaskServer = createServerFn({ method: 'POST' })
-  .inputValidator(z.object({ id: z.string() }))
-  .handler(async ({ data }) => {
-    try {
-      const db = await connectToDatabase();
-      const result = await db.collection('tasks').deleteOne({ id: data.id });
-      console.log('✅ DELETE SUCCESS:', data.id, 'Deleted:', result.deletedCount);
-    } catch (error) {
-      console.error('❌ DELETE ERROR:', error);
-      throw error;
-    }
-  });
+export const saveTaskServer = async ({ data }: { data: Omit<Task, 'id'> }) => {
+  return apiCall('insert', data);
+};
+
+export const updateTaskServer = async ({ data }: { data: Task }) => {
+  return apiCall('update', { ...data, id: data.id });
+};
+
+export const deleteTaskServer = async ({ data }: { data: { id: string } }) => {
+  return apiCall('delete', { id: data.id });
+};
