@@ -1,15 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { AppLayout } from '@/components/AppLayout';
-import { DashboardPage } from '@/components/DashboardPage';
+import { TasksPage } from '@/components/TasksPage';
 
-export const Route = createFileRoute('/')({
-  component: Index,
+export const Route = createFileRoute('/tasks')({
+  component: Tasks,
 });
 
-function Index() {
+function Tasks() {
   return (
     <AppLayout>
-      <DashboardPage />
+      <TasksPage />
     </AppLayout>
   );
 }
