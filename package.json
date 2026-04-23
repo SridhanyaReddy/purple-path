@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite dev",
-    "build": "NITRO_PRESET=vercel vite build",
+    "build": "NITRO_PRESET=vercel vite build && cp -r .output/public/* dist/",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
