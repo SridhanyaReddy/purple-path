@@ -3,14 +3,14 @@ import { connectToDatabase } from '../lib/db';
 import type { Expense } from '../lib/store';
 import { z } from 'zod';
 
-export const getExpenses = createServerFn({ method: 'GET' }).handler(async () => {
+export const getExpensesServer = createServerFn({ method: 'GET' }).handler(async () => {
   const db = await connectToDatabase();
   const expenses = await db.collection('expenses').find({}).toArray();
   console.log('Fetched expenses count:', expenses.length);
   return expenses.map(({ _id, ...rest }) => rest) as Expense[];
 });
 
-export const saveExpense = createServerFn({ method: 'POST' })
+export const saveExpenseServer = createServerFn({ method: 'POST' })
   .inputValidator(z.object({
     amount: z.number(),
     category: z.string(),
@@ -35,7 +35,7 @@ export const saveExpense = createServerFn({ method: 'POST' })
     }
   });
 
-export const updateExpense = createServerFn({ method: 'POST' })
+export const updateExpenseServer = createServerFn({ method: 'POST' })
   .inputValidator(z.object({
     id: z.string(),
     amount: z.number(),
@@ -57,7 +57,7 @@ export const updateExpense = createServerFn({ method: 'POST' })
     }
   });
 
-export const deleteExpense = createServerFn({ method: 'POST' })
+export const deleteExpenseServer = createServerFn({ method: 'POST' })
   .inputValidator(z.object({ id: z.string() }))
   .handler(async ({ data }) => {
     try {

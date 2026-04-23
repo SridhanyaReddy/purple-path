@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Edit3, Search, Wallet, Settings } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import {
-  getExpenses, saveExpense, updateExpense as updateExpenseServer, deleteExpense as deleteExpenseServer,
+  getExpensesServer, saveExpenseServer, updateExpenseServer, deleteExpenseServer,
   type Expense, type ExpenseCategory,
 } from '@/server/expenses';
 import { getBudget, saveBudget } from '@/lib/store';
@@ -15,25 +15,13 @@ const categoryEmoji: Record<ExpenseCategory, string> = {
 };
 
 export function ExpensesPage() {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    getExpenses().then((fetchedExpenses) => {
-      setExpenses(fetchedExpenses);
-      setIsLoading(false);
-    }).catch((error) => {
-      console.error('Error fetching expenses:', error);
-      setIsLoading(false);
-    });
-  }, []);
-
-  const refetchExpenses = () => {
-    getExpenses().then(setExpenses);
-  };
+  const { data: expenses = [], isLoading, refetch: refetchExpenses } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => getExpensesServer(),
+  });
 
   const addExpenseMutation = useMutation({
-    mutationFn: saveExpense,
+    mutationFn: saveExpenseServer,
     onSuccess: refetchExpenses,
   });
   const updateExpenseMutation = useMutation({

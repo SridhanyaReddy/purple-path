@@ -3,14 +3,14 @@ import { connectToDatabase } from '../lib/db';
 import type { Task } from '../lib/store';
 import { z } from 'zod';
 
-export const getTasks = createServerFn({ method: 'GET' }).handler(async () => {
+export const getTasksServer = createServerFn({ method: 'GET' }).handler(async () => {
   const db = await connectToDatabase();
   const tasks = await db.collection('tasks').find({}).toArray();
   console.log('Fetched tasks count:', tasks.length);
   return tasks.map(({ _id, ...rest }) => rest) as Task[];
 });
 
-export const saveTask = createServerFn({ method: 'POST' })
+export const saveTaskServer = createServerFn({ method: 'POST' })
   .inputValidator(z.object({
     title: z.string(),
     description: z.string().optional(),
@@ -38,7 +38,7 @@ export const saveTask = createServerFn({ method: 'POST' })
     }
   });
 
-export const updateTask = createServerFn({ method: 'POST' })
+export const updateTaskServer = createServerFn({ method: 'POST' })
   .inputValidator(z.object({
     id: z.string(),
     title: z.string(),
@@ -64,7 +64,7 @@ export const updateTask = createServerFn({ method: 'POST' })
     }
   });
 
-export const deleteTask = createServerFn({ method: 'POST' })
+export const deleteTaskServer = createServerFn({ method: 'POST' })
   .inputValidator(z.object({ id: z.string() }))
   .handler(async ({ data }) => {
     try {

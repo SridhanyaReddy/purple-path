@@ -17,26 +17,16 @@ const priorityStyles: Record<Priority, string> = {
   high: 'bg-destructive/15 text-destructive',
 };
 
+import { useQuery } from '@tanstack/react-query';
+
 export function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    getTasks().then((fetchedTasks) => {
-      setTasks(fetchedTasks);
-      setIsLoading(false);
-    }).catch((error) => {
-      console.error('Error fetching tasks:', error);
-      setIsLoading(false);
-    });
-  }, []);
-
-  const refetchTasks = () => {
-    getTasks().then(setTasks);
-  };
+  const { data: tasks = [], isLoading, refetch: refetchTasks } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => getTasksServer(),
+  });
 
   const addTaskMutation = useMutation({
-    mutationFn: saveTask,
+    mutationFn: saveTaskServer,
     onSuccess: refetchTasks,
   });
   const updateTaskMutation = useMutation({
