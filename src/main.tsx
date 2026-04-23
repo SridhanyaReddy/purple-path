@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DashboardPage } from './components/DashboardPage';
-import { TasksPage } from './components/TasksPage';
-import { ExpensesPage } from './components/ExpensesPage';
-import { AppLayout } from './components/AppLayout';
+import { DashboardPage } from './components/DashboardPage.tsx';
+import { TasksPage } from './components/TasksPage.tsx';
+import { ExpensesPage } from './components/ExpensesPage.tsx';
+import { AppLayout } from './components/AppLayout.tsx';
 
 const queryClient = new QueryClient();
 
