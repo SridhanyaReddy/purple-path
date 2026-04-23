@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Edit3, Check, X, Search, Link2 } from 'lucide-react';
+import { Plus, Trash2, Edit3, Check, Search, Link2, CheckSquare } from 'lucide-react';
 import {
   getTasks, addTask, updateTask, deleteTask, addExpense,
   type Task, type Priority, type TaskCategory,
