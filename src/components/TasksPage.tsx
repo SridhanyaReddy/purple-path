@@ -6,7 +6,7 @@ import {
   getTasksServer, saveTaskServer, updateTaskServer, deleteTaskServer,
   type Task, type Priority, type TaskCategory,
 } from '@/server/tasks';
-import { addExpense } from '@/lib/store';
+import { saveExpenseServer } from '@/server/expenses';
 
 const priorities: Priority[] = ['low', 'medium', 'high'];
 const categories: TaskCategory[] = ['personal', 'work', 'shopping', 'health', 'finance', 'other'];
@@ -36,6 +36,10 @@ export function TasksPage() {
   const deleteTaskMutation = useMutation({
     mutationFn: deleteTaskServer,
     onSuccess: refetchTasks,
+  });
+
+  const addExpenseMutation = useMutation({
+    mutationFn: saveExpenseServer,
   });
 
   const [showForm, setShowForm] = useState(false);
@@ -71,14 +75,15 @@ export function TasksPage() {
     const updated = { ...task, completed: !task.completed };
     updateTaskMutation.mutate({ data: updated });
     if (!task.completed && task.autoLogExpense && task.estimatedCost) {
-      const exp = addExpense({
-        amount: task.estimatedCost,
-        category: 'shopping',
-        date: new Date().toISOString().split('T')[0],
-        notes: `Auto-logged from task: ${task.title}`,
-        linkedTaskId: task.id,
+      addExpenseMutation.mutate({
+        data: {
+          amount: task.estimatedCost,
+          category: 'shopping' as any,
+          date: new Date().toISOString().split('T')[0],
+          notes: `Auto-logged from task: ${task.title}`,
+          linkedTaskId: task.id,
+        }
       });
-      updateTaskMutation.mutate({ data: { ...updated, linkedExpenseId: exp.id } });
     }
   };
 
