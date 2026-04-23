@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Edit3, Search, Wallet, Settings } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   getExpensesServer, saveExpenseServer, updateExpenseServer, deleteExpenseServer,
   type Expense, type ExpenseCategory,

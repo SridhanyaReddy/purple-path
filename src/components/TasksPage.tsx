@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Edit3, Check, Search, Link2, CheckSquare } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import {
-  getTasks, saveTask, updateTask as updateTaskServer, deleteTask as deleteTaskServer,
+  getTasksServer, saveTaskServer, updateTaskServer, deleteTaskServer,
   type Task, type Priority, type TaskCategory,
 } from '@/server/tasks';
 import { addExpense } from '@/lib/store';
