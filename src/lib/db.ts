@@ -23,7 +23,7 @@ export async function connectToDatabase() {
       throw err;
     }
   }
-  const dbName = process.env.MONGO_DB_NAME || 'test';
+  const dbName = process.env.MONGO_DB_NAME || 'purple-path';
   return client.db(dbName);
 }
 
