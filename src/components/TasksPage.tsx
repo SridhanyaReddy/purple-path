@@ -75,13 +75,17 @@ export function TasksPage() {
     const updated = { ...task, completed: !task.completed };
     updateTaskMutation.mutate({ data: updated });
     if (!task.completed && task.autoLogExpense && task.estimatedCost) {
-      addExpenseMutation.mutate({
+      addExpenseMutation.mutateAsync({
         data: {
           amount: task.estimatedCost,
           category: 'shopping' as any,
           date: new Date().toISOString().split('T')[0],
           notes: `Auto-logged from task: ${task.title}`,
           linkedTaskId: task.id,
+        }
+      }).then((res: any) => {
+        if (res?.expense?.id) {
+          updateTaskMutation.mutate({ data: { ...updated, linkedExpenseId: res.expense.id } });
         }
       });
     }
