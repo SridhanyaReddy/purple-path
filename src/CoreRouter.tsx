@@ -8,7 +8,7 @@ import { AppLayout } from './components/AppLayout.tsx';
 
 const queryClient = new QueryClient();
 
-export default function Main() {
+export default function CoreRouter() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
